@@ -8,6 +8,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 public class Consumidor {
 
@@ -33,7 +34,8 @@ public class Consumidor {
                 String payload = new String(delivery.getBody(), StandardCharsets.UTF_8);
                 try {
                     Transaccion tx = mapper.readValue(payload, Transaccion.class);
-                    tx.idTransaccion = tx.idTransaccion + "-LESTERPAYES"; 
+                    String codigoUnico = UUID.randomUUID().toString().substring(0, 8);
+                    tx.idTransaccion = "TX-" + tx.idTransaccion + "-" + codigoUnico + "-LESTER";
                     tx.carnet = "0905-24-22750"; 
                     tx.nombre = "Lester David Payes Méndez"; 
                     tx.correo = "lpayesm@miumg.edu.gt";
