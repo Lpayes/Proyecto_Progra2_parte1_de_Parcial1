@@ -36,6 +36,8 @@ public class Productor {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             
+            if (response.statusCode() == 200) {
+                System.out.println("Status del GET: " + response.statusCode() + " OK");
             LoteTransacciones lote = mapper.readValue(response.body(), LoteTransacciones.class);
 
             for (Transaccion tx : lote.transacciones) {
@@ -51,6 +53,10 @@ public class Productor {
             }
 
             System.out.println("Proceso terminado. Lote enviado.");
+            
+            } else { 
+                System.err.println("Error en la API. Código recibido: " + response.statusCode());
+            } 
 
         } catch (Exception ex) {
             System.err.println("Error: " + ex.getMessage());
