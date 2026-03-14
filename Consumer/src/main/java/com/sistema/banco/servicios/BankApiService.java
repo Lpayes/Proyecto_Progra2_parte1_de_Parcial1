@@ -19,7 +19,9 @@ public class BankApiService {
             
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             System.out.println("Respuesta API Guardar: " + response.statusCode());
-            return response.statusCode() == 200;
+            
+            // CAMBIA ESTA LÍNEA:
+            return response.statusCode() == 200 || response.statusCode() == 201; 
         } catch (Exception e) {
             return false;
         }

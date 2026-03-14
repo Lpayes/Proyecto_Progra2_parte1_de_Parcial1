@@ -23,8 +23,8 @@ public class Productor {
                 LoteTransacciones lote = BankApiService.obtenerTransacciones();
                 System.out.println("Status del GET: 200 OK");
 
-            for (Transaccion tx : lote.transacciones) {
-                String bank = tx.bancoDestino.toUpperCase().trim();
+                for (Transaccion tx : lote.getTransacciones()) {
+            	String bank = tx.getBancoDestino().toUpperCase().trim();
                 
                 channel.queueDeclare(bank, true, false, false, null);
 
@@ -32,7 +32,7 @@ public class Productor {
                 
                 channel.basicPublish("", bank, MessageProperties.PERSISTENT_TEXT_PLAIN, payload.getBytes());
 
-                System.out.println("Publicada transacción " + tx.idTransaccion + " en cola: " + bank);
+                System.out.println("Paublicada transacción " + tx.getIdTransaccion() + " en cola: " + bank);
             }
 
             System.out.println("Proceso terminado. Lote enviado.");

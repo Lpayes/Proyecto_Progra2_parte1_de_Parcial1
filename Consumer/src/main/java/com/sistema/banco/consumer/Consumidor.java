@@ -30,26 +30,26 @@ public class Consumidor {
                 try {
                     Transaccion tx = mapper.readValue(payload, Transaccion.class);
                     String codigoUnico = UUID.randomUUID().toString().substring(0, 8);
-                    tx.idTransaccion = "TX-" + tx.idTransaccion + "-" + codigoUnico + "-LESTER";
-                    tx.carnet = "0905-24-22750"; 
-                    tx.nombre = "Lester David Payes Méndez"; 
-                    tx.correo = "lpayesm@miumg.edu.gt";
+                    tx.setIdTransaccion("TX-" + tx.getIdTransaccion() + "-" + codigoUnico + "-LESTER");
+                    tx.setCarnet("0905-24-22750");
+                    tx.setNombre("Lester David Payes Méndez");
+                    tx.setCorreo("lpayesm@miumg.edu.gt");
                     
                     String jsonModificado = mapper.writeValueAsString(tx);
                     
-                    if (BankApiService.guardarTransaccion(jsonModificado)) {
-                        System.out.println("[OK] Transaccion guardada para Lester: " + tx.idTransaccion);
-                        channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
-                    } else {
-                        System.err.println("[FALLO] Reintentando en 3 segundos..."); 
-                        
-                        Thread.sleep(2000);
+                    boolean guardado = false;
+                    int intentos = 0;
 
+                    while (!guardado) {
+                        intentos++;
                         if (BankApiService.guardarTransaccion(jsonModificado)) {
-                            System.out.println("[OK] Guardado en segundo intento.");
+                            System.out.println("[OK] Transacción guardada en intento #" + intentos + ": " + tx.getIdTransaccion());
+
                             channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                            guardado = true;
                         } else {
-                            System.err.println("[ERROR] No se pudo procesar. El mensaje permanece en la cola.");
+                            System.err.println("[FALLO] Intento #" + intentos + " fallido. Reintentando en 3 segundos...");
+                            Thread.sleep(3000); 
                         }
                     }
                 } catch (Exception ex) {
