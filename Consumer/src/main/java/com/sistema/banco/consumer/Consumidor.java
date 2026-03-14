@@ -10,7 +10,7 @@ import com.sistema.banco.servicios.BankApiService;
 
 public class Consumidor {
 
-	private static final String[] BANK_QUEUES = {"BANRURAL", "GYT", "BAC", "BI"};
+	private static final String[] BANK_QUEUES = {"BANRURAL", "GYT", "BAC", "BI", "cola_rechazados"};
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void main(String[] args) throws Exception {
@@ -37,21 +37,29 @@ public class Consumidor {
                     
                     String jsonModificado = mapper.writeValueAsString(tx);
                     
-                    boolean guardado = false;
-                    int intentos = 0;
+                    boolean exito = false;
 
-                    while (!guardado) {
-                        intentos++;
-                        if (BankApiService.guardarTransaccion(jsonModificado)) {
-                            System.out.println("[OK] Transacción guardada en intento #" + intentos + ": " + tx.getIdTransaccion());
-
-                            channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
-                            guardado = true;
-                        } else {
-                            System.err.println("[FALLO] Intento #" + intentos + " fallido. Reintentando en 3 segundos...");
-                            Thread.sleep(3000); 
+                    if (queue.equals("cola_rechazados")) {
+     
+                        System.err.println("RECHAZADA EN ORIGEN: " + payload + " >>>");
+                        channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                    } else {
+                        System.out.println("Procesando para API: " + tx.getIdTransaccion() + " de la cola " + queue);
+                        
+                        while (!exito) {
+                            if (BankApiService.guardarTransaccion(jsonModificado)) {
+                                String logAceptada = "ID: " + tx.getIdTransaccion() + " | MONTO: " + tx.getMonto() + " | ESTADO: ACEPTADA (POST)";
+                                System.out.println(logAceptada);
+                                channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                                exito = true;
+                            } else {
+                                System.err.println("Falla conexión API. Reintentando ID: " + tx.getIdTransaccion());
+                                Thread.sleep(3000); 
+                            }
                         }
                     }
+                    
+                    
                 } catch (Exception ex) {
                     System.err.println("Error procesando mensaje: " + ex.getMessage());
                 }
