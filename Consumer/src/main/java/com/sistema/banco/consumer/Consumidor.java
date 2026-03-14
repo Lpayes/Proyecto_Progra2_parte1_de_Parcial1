@@ -28,22 +28,21 @@ public class Consumidor {
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                 String payload = new String(delivery.getBody(), StandardCharsets.UTF_8);
                 try {
-                    Transaccion tx = mapper.readValue(payload, Transaccion.class);
-                    String codigoUnico = UUID.randomUUID().toString().substring(0, 8);
-                    tx.setIdTransaccion("TX-" + tx.getIdTransaccion() + "-" + codigoUnico + "-LESTER");
-                    tx.setCarnet("0905-24-22750");
-                    tx.setNombre("Lester David Payes Méndez");
-                    tx.setCorreo("lpayesm@miumg.edu.gt");
-                    
-                    String jsonModificado = mapper.writeValueAsString(tx);
-                    
-                    boolean exito = false;
-
-                    if (queue.equals("cola_rechazados")) {
-     
-                        System.err.println("RECHAZADA EN ORIGEN: " + payload + " >>>");
+                	if (queue.equals("cola_rechazados")) {
+                        System.err.println("REGISTRO RECIBIDO: " + payload);
                         channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
-                    } else {
+                    } 
+                    else {
+                        Transaccion tx = mapper.readValue(payload, Transaccion.class);
+                        String codigoUnico = UUID.randomUUID().toString().substring(0, 8);
+                        tx.setIdTransaccion("TX-" + tx.getIdTransaccion() + "-" + codigoUnico + "-LESTER");
+                        tx.setCarnet("0905-24-22750");
+                        tx.setNombre("Lester David Payes Méndez");
+                        tx.setCorreo("lpayesm@miumg.edu.gt");
+                        
+                        String jsonModificado = mapper.writeValueAsString(tx);
+                        boolean exito = false;
+
                         System.out.println("Procesando para API: " + tx.getIdTransaccion() + " de la cola " + queue);
                         
                         while (!exito) {
@@ -53,7 +52,7 @@ public class Consumidor {
                                 channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
                                 exito = true;
                             } else {
-                                System.err.println("Falla conexión API. Reintentando ID: " + tx.getIdTransaccion());
+                                System.err.println("Falla conexion API. Reintentando ID: " + tx.getIdTransaccion());
                                 Thread.sleep(3000); 
                             }
                         }
